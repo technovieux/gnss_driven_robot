@@ -192,8 +192,10 @@ void gnss_io_thread() {     // Configure le recepteur puis lit ses trames serie 
         if (read(serial_fd, &c, 1) > 0) {               // Lit un caractere lorsque le recepteur en a transmis un.
             if (c != '\r' && c != '\n' && idx < 510) {  // Accumule les caracteres sauf les fins de ligne et les depassements.
                 line_buffer[idx++] = c;                 // Ajoute le caractere au tampon et avance sa position.
-            } else if (c == '\n') {                     // Traite le tampon lorsque le caractere de fin de ligne est recu.
+            } 
+            else if (c == '\n') {                       // Traite le tampon lorsque le caractere de fin de ligne est recu.
                 line_buffer[idx] = '\0';                // Termine la ligne accumulee comme une chaine C.
+
                 if (idx > 10) {                         // Ignore les lignes trop courtes pour constituer une trame utile.
                     if (strstr(line_buffer, "$GNGGA") || strstr(line_buffer, "$GPGGA")) {   // Detecte les deux variantes de trame GGA.
                         std::cerr << "[UART-GGA] " << line_buffer << std::endl;             // Affiche la trame GNSS recue.
