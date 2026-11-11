@@ -23,6 +23,7 @@ void motor_control_thread() {                               // Pilote les moteur
     auto motor_left_B = hat.getMotor(MOTOR_LEFT_B_PORT);    // Recupere le moteur arriere gauche.
     auto motor_right_F = hat.getMotor(MOTOR_RIGHT_F_PORT);  // Recupere le moteur avant droit.
     auto motor_right_B = hat.getMotor(MOTOR_RIGHT_B_PORT);  // Recupere le moteur arriere droit.
+    
     if (!motor_left_F || !motor_left_B || !motor_right_F || !motor_right_B) {           // Verifie que les quatre moteurs sont disponibles.
         std::cerr << "[MOTEURS] Erreur matérielle Adafruit Motor HAT !" << std::endl;   // Signale qu'un moteur n'a pas pu etre initialise.
         return;     // Arrete le thread si la configuration materielle est incomplete.
@@ -125,7 +126,8 @@ void motor_control_thread() {                               // Pilote les moteur
             motor_left_B->run(AdafruitDCMotor::kForward);   // Commande l'avance du moteur gauche arriere.
             motor_right_F->run(AdafruitDCMotor::kForward);  // Commande l'avance du moteur droit avant.
             motor_right_B->run(AdafruitDCMotor::kForward);  // Commande l'avance du moteur droit arriere.
-        } else {                                            // Traite le cas ou aucune route exploitable n'est disponible.
+        } 
+        else {                                              // Traite le cas ou aucune route exploitable n'est disponible.
             route_mutex.unlock();                           // Libere le verrou pris au debut du cycle.
             motor_left_F->run(AdafruitDCMotor::kRelease);   // Libere le moteur gauche avant en l'absence de cible.
             motor_left_B->run(AdafruitDCMotor::kRelease);   // Libere le moteur gauche arriere en l'absence de cible.
