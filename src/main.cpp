@@ -90,16 +90,20 @@ int init_serial(const char *portname) {                         // Ouvre et conf
 }
 
 static int callback_websocket(struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len) { // Traite les evenements du client WebSocket.
+    
     switch (reason) {                                                                           // Selectionne le traitement selon le type de rappel libwebsockets.
+        
         case LWS_CALLBACK_ESTABLISHED:                                                          // Traite la connexion d'un navigateur.
             web_client = wsi;                                                                   // Enregistre le client WebSocket courant.
             std::cerr << "[WS] Client navigateur connecte" << std::endl;                        // affiche l'ouverture de la connexion.
             break;
+
         case LWS_CALLBACK_CLOSED:                                                               // Traite la fermeture d'une connexion navigateur.
             if (web_client == wsi) web_client = nullptr;                                        // Efface le client courant s'il correspond a la connexion fermee.
             std::cerr << "[WS] Client navigateur deconnecte" << std::endl;                      // affiche la fermeture de la connexion.
             break;
-        case LWS_CALLBACK_SERVER_WRITEABLE: {                                                    // Traite le moment ou le serveur peut ecrire vers le navigateur.
+        
+        case LWS_CALLBACK_SERVER_WRITEABLE: {                                                   // Traite le moment ou le serveur peut ecrire vers le navigateur.
             std::string message;                                                                // Reserve une chaine pour le message a transmettre.
             {
                 std::lock_guard<std::mutex> lock(ws_message_mutex);                             // Verrouille la file pendant l'extraction du message.
@@ -109,14 +113,17 @@ static int callback_websocket(struct lws *wsi, enum lws_callback_reasons reason,
                 std::vector<unsigned char> buf(LWS_PRE + message.size());                       // Alloue un tampon avec l'espace reserve exige par LWS.
                 memcpy(buf.data() + LWS_PRE, message.data(), message.size());                   // Copie le contenu du message dans le tampon d'envoi.
                 const int written = lws_write(wsi, buf.data() + LWS_PRE, message.size(), LWS_WRITE_TEXT); // Envoie le message sous forme de texte.
+                
                 if (written < 0) {                                                              // Detecte une erreur de transmission WebSocket.
                     std::cerr << "[WS] Echec lws_write" << std::endl;                           // Signale l'echec de l'ecriture.
                     return -1;                                                                  // Indique a libwebsockets que le rappel a echoue.
                 }
+
                 if ((size_t)written != message.size()) {                                        // Verifie si le nombre d'octets envoyes est complet.
                     std::cerr << "[WS] Avertissement: message tronque (" << written             // Signale le nombre d'octets effectivement ecrits.
                               << "/" << message.size() << ")" << std::endl;                     // Affiche la taille attendue pour completer le diagnostic.
-                } else {                                                                        // Traite le cas ou le message entier a ete envoye.
+                } 
+                else {                                                                          // Traite le cas ou le message entier a ete envoye.
                     std::cerr << "[WS] Message envoye au navigateur: " << message << std::endl; // affiche le message transmis.
                 }
             }
@@ -136,12 +143,13 @@ static int callback_websocket(struct lws *wsi, enum lws_callback_reasons reason,
                     std::lock_guard<std::mutex> lock(route_mutex);                              // Protege l'ajout a la route partagee.
                     checkpoints.push_back({lat, lng});                                          // Ajoute le point recu a la fin de la route.
                 }
-
-            } else if (payload.find("\"action\":\"clear_route\"") != std::string::npos) {       // Detecte la demande d'effacement de route.
+            } 
+            else if (payload.find("\"action\":\"clear_route\"") != std::string::npos) {         // Detecte la demande d'effacement de route.
                 std::lock_guard<std::mutex> lock(route_mutex);                                  // Protege la modification de la route partagee.
                 checkpoints.clear();                                                            // Supprime tous les points de passage.
 
-            } else if (payload.find("\"action\":\"manual_move\"") != std::string::npos) {       // Detecte une commande de mouvement manuel.
+            } 
+            else if (payload.find("\"action\":\"manual_move\"") != std::string::npos) {         // Detecte une commande de mouvement manuel.
                 const char *dir_ptr = strstr(payload.c_str(), "\"direction\":\"");              // Cherche la valeur du champ direction.
                 if (dir_ptr) {                                                                  // Continue uniquement si le champ direction est present.
                     char dir[16] = {};                                                          // Reserve un tampon nul pour recevoir la direction.
